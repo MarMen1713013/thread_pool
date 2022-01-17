@@ -31,6 +31,7 @@ namespace thread_safe {
         std::mutex m_mutex;
         std::condition_variable m_queue_cv;
         std::queue<_T> m_queue;
+        std::atomic<int> count;
     public:
         thread_queue() = default;
         /**
@@ -43,6 +44,10 @@ namespace thread_safe {
         thread_queue& operator=( thread_queue&& ) noexcept = default;
         void swap( thread_queue&& );
 
+        /**
+         * Utility:
+         */
+        bool empty();
         /**
          * Thread-safe queue wrapper:
          */
@@ -120,12 +125,12 @@ namespace thread_safe {
 template<typename _T>
 _T thread_safe::thread_queue<_T>::pop() {
     std::unique_lock lk{m_mutex};
-    m_queue_cv.wait_for( lk, 5s, [this]() {
+    m_queue_cv.wait_for( lk, 50ms, [this]() {
             return !m_queue.empty();
         }
     );
     if( m_queue.empty() )
-        throw thread_queue_exception("After 5s it is still empty...");
+        throw thread_queue_exception("After 50ms it is still empty...");
     _T out_val = std::move(m_queue.front());
     m_queue.pop();
     return out_val;
@@ -146,6 +151,12 @@ void thread_safe::thread_queue<_T>::swap( thread_queue&& val) {
     *this = std::move(tmp);
 }
 
+template<typename _T>
+bool thread_safe::thread_queue<_T>::empty() {
+    std::lock_guard lk{m_mutex};
+    return m_queue.empty();
+}
+
 // =================================== //
 //             THREAD POOL             //
 // =================================== //
@@ -163,6 +174,7 @@ thread_safe::thread_pool::~thread_pool() {
 }
 
 void thread_safe::thread_pool::stop() {
+    while( !m_work_queue.empty() ) {}
     m_stop_flag = true;
 }
 

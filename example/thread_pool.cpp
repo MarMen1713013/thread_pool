@@ -5,6 +5,7 @@
  */
 
 #include <iostream>
+#include <sstream>
 #include "../thread_safe.h"
 
 std::mutex m;
@@ -17,7 +18,7 @@ std::mutex m;
 class dummy{
 public:
     void dummy_say( std::string str ) {
-        std::lock_guard lk{m};
+        std::unique_lock lk{m};
         std::cout << "\nDummy! ahahah " << str << std::endl;
     }
     static int dummy_sum( int a, int b ) {
@@ -33,18 +34,22 @@ using tp = thread_safe::thread_pool;
 
 // 'void' returning task
 void task1() {
-    std::lock_guard lk{m};
-    std::cout << "\nNew thread id: " << std::this_thread::get_id() << std::endl;
+    {
+        std::unique_lock lk{m};
+        std::cout << "\nNew thread id: " << std::this_thread::get_id() << std::endl;
+        std::cout << "Tread #" << std::this_thread::get_id() << " finished!" << std::endl;
+    }
     std::this_thread::sleep_for(100ms);
-    std::cout << "Tread #" << std::this_thread::get_id() << " finished!" << std::endl;
 }
 
 // 'int' returning task
 int task2(bool ignore_me) {
-    std::lock_guard lk{m};
-    std::cout << "\nNew thread id: " << std::this_thread::get_id() << " with 'int' return type" << std::endl;
+    {
+        std::unique_lock lk{m};
+        std::cout << "\nNew thread id: " << std::this_thread::get_id() << " with 'int' return type" << std::endl;
+        std::cout << "Tread #" << std::this_thread::get_id() << " finished!" << std::endl;
+    }
     std::this_thread::sleep_for(100ms);
-    std::cout << "Tread #" << std::this_thread::get_id() << " finished!" << std::endl;
     return 10;
 }
 
@@ -71,13 +76,15 @@ int main( int argc, char *argv[] ) {
     auto dummysum = thread_pool->submit(&dummy::dummy_sum,1,2); // staic with arguments
     auto dummyname = thread_pool->submit(&dummy::class_name); // static with no argument
 
-    std::this_thread::sleep_for(5s);
     thread_pool->stop();
-
     {
-        std::lock_guard lk{m};
-        std::cout << "\nDummy sum is: " << dummysum.get() << " from class " << dummyname.get() << std::endl;
+        std::stringstream out;
+        out << "\nDummy sum is: " << dummysum.get() << " from class " << dummyname.get() << std::endl;
+        std::cout << out.str();
     }
 
+
+    for(auto& fut : return_values)
+        std::cout << fut.get() << std::endl;
     return 0;
 }
