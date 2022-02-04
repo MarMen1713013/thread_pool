@@ -1,0 +1,4 @@
+add_executable(type_check_test type_check_test.cpp)
+target_link_libraries(type_check_test PRIVATE thread_safe)
+add_executable(thread_safe_queue_test thread_safe_queue.cpp)
+target_link_libraries(thread_safe_queue_test PRIVATE thread_safe)

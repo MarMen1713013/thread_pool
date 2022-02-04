@@ -1,0 +1,4 @@
+add_executable(thread_pool thread_pool.cpp)
+target_link_libraries(thread_pool PRIVATE thread_safe)
+add_executable(thread_safe_queue thread_safe_queue.cpp)
+target_link_libraries(thread_safe_queue PRIVATE thread_safe)
