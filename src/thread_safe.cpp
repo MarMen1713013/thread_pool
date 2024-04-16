@@ -37,7 +37,7 @@ void thread_safe::thread_pool::worker() {
 thread_safe::thread_pool *thread_safe::thread_pool::m_instance{nullptr};
 std::mutex thread_safe::thread_pool::singleton_mutex;
 thread_safe::thread_pool *thread_safe::thread_pool::get_pool() {
-    std::lock_guard lk{singleton_mutex};
+    std::lock_guard<std::mutex> lk{singleton_mutex};
     if( m_instance == nullptr ) {
         m_instance = new thread_pool();
     }

@@ -6,7 +6,7 @@
 
 #include <iostream>
 #include <sstream>
-#include "../thread_safe.h"
+#include <thread_safe.h>
 
 std::mutex m;
 
