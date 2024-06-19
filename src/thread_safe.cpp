@@ -6,7 +6,7 @@
 // =================================== //
 thread_safe::thread_pool::thread_pool() {
     const unsigned n_threads = std::thread::hardware_concurrency();
-    for( unsigned i{0}; i < n_threads; ++i )
+    for( unsigned i{0}; i < n_threads*2; ++i )
         m_threads.push_back(
             std::thread{ &thread_safe::thread_pool::worker, this }
         );
